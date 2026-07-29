@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
+    const rol = (localStorage.getItem('rol') || '').toUpperCase();
     const currentUsername = document.getElementById('currentUsername');
     const logoutButton = document.getElementById('logoutButton');
+    const navUsuarios = document.getElementById('navUsuarios');
 
     if (!token) {
         window.location.href = 'login.html';
@@ -20,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('rol');
             window.location.href = 'login.html';
         });
+    }
+
+    if (navUsuarios) {
+        navUsuarios.style.display = rol === 'ADMIN' ? 'inline-flex' : 'none';
     }
 
     cargarResumen();

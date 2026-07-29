@@ -39,6 +39,11 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
+    public void eliminar(Long id) {
+        Usuario usuario = buscarUsuarioPorId(id);
+        usuarioRepository.delete(usuario);
+    }
+
     private Usuario buscarUsuarioPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
