@@ -74,11 +74,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const producto = (productoFilter?.value || '').trim().toLowerCase();
         const tipo = (tipoFilter?.value || '').trim().toUpperCase();
 
+        let idsProductosCoincidentes = [];
+        if (producto) {
+            idsProductosCoincidentes = productos
+                .filter(p => (p.nombre || '').toLowerCase().includes(producto))
+                .map(p => p.id);
+        }
+
         const filtradas = auditorias.filter((item) => {
             const usuarioCoincide = !usuario || (item.usuario || '').toLowerCase().includes(usuario);
             const entidadCoincide = !entidad || (item.entidadAfectada || '').toLowerCase().includes(entidad);
-            const productoCoincide = !producto || (item.valoresNuevos || '').toLowerCase().includes(producto) || (item.valoresAnteriores || '').toLowerCase().includes(producto);
             const tipoCoincide = !tipo || (item.tipoOperacion || '').toUpperCase() === tipo;
+
+            let productoCoincide = !producto;
+            if (producto && (item.entidadAfectada || '').toLowerCase().includes('producto')) {
+                productoCoincide = idsProductosCoincidentes.includes(item.entidadId);
+            }
+
             return usuarioCoincide && entidadCoincide && productoCoincide && tipoCoincide;
         });
 
@@ -96,21 +108,27 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = datos.map((item) => {
             const fecha = item.fechaHora ? new Date(item.fechaHora).toLocaleString('es-ES') : 'Sin fecha';
 
-            // Si la entidad afectada es Producto, mostrar el nombre del producto si está disponible
-            let detalle = 'Sin detalle';
+            let detalle;
+            const valoresNuevos = item.valoresNuevos ? String(item.valoresNuevos) : '';
+            const valoresAnteriores = item.valoresAnteriores ? String(item.valoresAnteriores) : '';
 
             if (item.entidadAfectada && String(item.entidadAfectada).toLowerCase().includes('producto') && item.entidadId) {
                 const prod = productos.find(p => Number(p.id) === Number(item.entidadId));
-
                 if (prod) {
-                    detalle = `Producto: ${prod.nombre}`;
-                } else if (item.valoresNuevos) {
-                    detalle = item.valoresNuevos;
+                    detalle = `Producto: ${prod.nombre} (ID: ${item.entidadId})`;
+                } else if (valoresNuevos.includes('nombre=')) {
+                    // Intenta extraer el nombre del producto de los valores de auditoría
+                    const match = valoresNuevos.match(/nombre=([^,}\]]*)/);
+                    if (match && match[1]) {
+                        detalle = `Producto: ${match[1]}`;
+                    } else {
+                        detalle = valoresNuevos;
+                    }
                 } else {
                     detalle = `Producto #${item.entidadId}`;
                 }
             } else {
-                detalle = item.valoresNuevos ? String(item.valoresNuevos) : (item.valoresAnteriores ? String(item.valoresAnteriores) : 'Sin detalle');
+                detalle = valoresNuevos || valoresAnteriores || 'Sin detalle';
             }
 
             return `

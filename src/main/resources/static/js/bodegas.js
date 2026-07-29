@@ -394,7 +394,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         stockTableBody.innerHTML = registros.map((registro) => {
             const bodega = bodegas.find((item) => item.id === registro.bodegaId);
-            const producto = productos.find((item) => item.id === registro.productoId);
+            const producto = productos.find((item) => (item.id ?? item.productoId) === registro.productoId);
             return `
                 <tr>
                     <td>${bodega ? bodega.nombre : 'Sin bodega'}</td>

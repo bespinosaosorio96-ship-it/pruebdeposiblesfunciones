@@ -27,8 +27,8 @@ public class ProductoDto {
 
     @NotBlank(message = "La categoría del producto es obligatoria")
     @Size(
-            max = 80,
-            message = "La categoría no puede superar los 80 caracteres"
+            max = 100,
+            message = "La categoría no puede superar los 100 caracteres"
     )
     private String categoria;
 

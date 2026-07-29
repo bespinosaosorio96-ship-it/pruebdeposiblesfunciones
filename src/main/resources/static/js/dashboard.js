@@ -25,7 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (navUsuarios) {
-        navUsuarios.style.display = rol === 'ADMIN' ? 'inline-flex' : 'none';
+        if (rol !== 'ADMIN') {
+            navUsuarios.style.display = 'none';
+            // Si estamos en la página de usuarios y no somos admin, redirigir.
+            if (window.location.pathname.includes('usuarios.html')) {
+                window.location.replace('index.html');
+            }
+        } else {
+            navUsuarios.style.display = 'inline-flex';
+        }
     }
 
     cargarResumen();

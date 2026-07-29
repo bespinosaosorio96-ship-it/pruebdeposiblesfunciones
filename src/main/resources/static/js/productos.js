@@ -834,8 +834,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Calcular stock total por producto sumando inventarios
             const productoId = obtenerIdProducto(producto);
-            const stockTotal = inventarios.reduce(function (acc, inv) {
-                const pid = inv.productoId ?? inv.producto?.id ?? inv.productoId;
+            const stockTotal = inventarios.reduce((acc, inv) => {
+                const pid = inv.productoId ?? inv.producto?.id;
                 if (Number(pid) === Number(productoId)) {
                     return acc + (Number(inv.stock) || 0);
                 }
