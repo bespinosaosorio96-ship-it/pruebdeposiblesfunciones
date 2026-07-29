@@ -45,6 +45,14 @@
                     Movimientos
                 </a>
 
+                <a href="auditoria.html">
+                    Auditoría
+                </a>
+
+                <a href="usuarios.html">
+                    Usuarios
+                </a>
+
                 <button
                     type="button"
                     id="logoutButton"
@@ -261,37 +269,7 @@
         </div>
     </noscript>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const token = localStorage.getItem("token");
-            const username = localStorage.getItem("username");
-
-            const currentUsername =
-                document.getElementById("currentUsername");
-
-            const logoutButton =
-                document.getElementById("logoutButton");
-
-            if (!token) {
-                window.location.href = "login.html";
-                return;
-            }
-
-            if (username && currentUsername) {
-                currentUsername.textContent = username;
-            }
-
-            if (logoutButton) {
-                logoutButton.addEventListener("click", function () {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("username");
-                    localStorage.removeItem("rol");
-
-                    window.location.href = "login.html";
-                });
-            }
-        });
-    </script>
+    <script src="js/dashboard.js" defer></script>
 
 </body>
 </html>

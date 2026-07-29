@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const LOGIN_PAGE = "login.html";
 
     let productos = [];
+    let inventarios = [];
     let enviandoFormulario = false;
     let eliminandoProducto = false;
 
@@ -269,6 +270,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const datos = await leerRespuesta(response);
             productos = normalizarLista(datos);
+
+            // Cargar inventarios para mostrar stock por producto
+            try {
+                const invResp = await realizarPeticion('/api/inventarios', { method: 'GET' });
+                const invData = await leerRespuesta(invResp);
+                inventarios = normalizarLista(invData);
+            } catch (invErr) {
+                inventarios = [];
+                console.warn('No se pudo cargar inventarios:', invErr);
+            }
 
             actualizarFiltroCategorias(productos);
             aplicarFiltros();
@@ -819,6 +830,20 @@ document.addEventListener("DOMContentLoaded", function () {
                         obtenerPrecio(producto)
                     )
                 )
+            );
+
+            // Calcular stock total por producto sumando inventarios
+            const productoId = obtenerIdProducto(producto);
+            const stockTotal = inventarios.reduce(function (acc, inv) {
+                const pid = inv.productoId ?? inv.producto?.id ?? inv.productoId;
+                if (Number(pid) === Number(productoId)) {
+                    return acc + (Number(inv.stock) || 0);
+                }
+                return acc;
+            }, 0);
+
+            fila.appendChild(
+                crearCelda(stockTotal)
             );
 
             const celdaAcciones =

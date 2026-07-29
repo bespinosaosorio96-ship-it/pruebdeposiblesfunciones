@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let bodegas = [];
     let usuarios = [];
+    let productos = [];
     let enviandoFormulario = false;
     let eliminandoBodega = false;
 
@@ -66,6 +67,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const pageMessage = document.getElementById("pageMessage");
     const logoutButton = document.getElementById("logoutButton");
+    const stockFilterSelect = document.getElementById("bodegaStockFilter");
+    const stockTableBody = document.getElementById("stockTableBody");
 
     const summaryTotalBodegas = document.getElementById(
         "summaryTotalBodegas"
@@ -266,6 +269,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 cerrarSesion
             );
         }
+
+        if (stockFilterSelect) {
+            stockFilterSelect.addEventListener(
+                "change",
+                cargarStockPorBodega
+            );
+        }
     }
 
     async function cargarDatosIniciales() {
@@ -283,8 +293,11 @@ document.addEventListener("DOMContentLoaded", function () {
          */
         const resultados = await Promise.allSettled([
             cargarUsuarios(),
-            cargarBodegas()
+            cargarBodegas(),
+            cargarProductos()
         ]);
+
+        await cargarStockPorBodega();
 
         const usuariosFallaron =
             resultados[0].status === "rejected";
@@ -334,6 +347,72 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
             throw error;
+        }
+    }
+
+    async function cargarStockPorBodega() {
+        if (!stockTableBody) {
+            return;
+        }
+
+        const selectedBodegaId = stockFilterSelect?.value || "";
+
+        try {
+            const endpoint = selectedBodegaId
+                ? `/api/inventarios/bodega/${selectedBodegaId}`
+                : '/api/inventarios';
+
+            const response = await realizarPeticion(endpoint, {
+                method: 'GET'
+            });
+
+            const datos = await leerRespuesta(response);
+            const registros = normalizarLista(datos);
+
+            if (stockFilterSelect) {
+                const bodegasDisponibles = bodegas.length ? bodegas : [];
+                stockFilterSelect.innerHTML = '<option value="">Todas las bodegas</option>' + bodegasDisponibles.map((bodega) => `<option value="${bodega.id}">${bodega.nombre}</option>`).join('');
+                stockFilterSelect.value = selectedBodegaId;
+            }
+
+            renderizarStock(registros);
+        } catch (error) {
+            console.error('Error al consultar el stock:', error);
+            renderizarStock([]);
+        }
+    }
+
+    function renderizarStock(registros) {
+        if (!stockTableBody) {
+            return;
+        }
+
+        if (!registros.length) {
+            stockTableBody.innerHTML = '<tr><td colspan="3" class="no-data">No hay stock registrado.</td></tr>';
+            return;
+        }
+
+        stockTableBody.innerHTML = registros.map((registro) => {
+            const bodega = bodegas.find((item) => item.id === registro.bodegaId);
+            const producto = productos.find((item) => item.id === registro.productoId);
+            return `
+                <tr>
+                    <td>${bodega ? bodega.nombre : 'Sin bodega'}</td>
+                    <td>${producto ? producto.nombre : 'Sin producto'}</td>
+                    <td><span class="badge ${registro.stock > 0 ? 'badge-success' : 'badge-warning'}">${registro.stock ?? 0}</span></td>
+                </tr>`;
+        }).join('');
+    }
+
+    async function cargarProductos() {
+        try {
+            const response = await realizarPeticion('/api/productos', { method: 'GET' });
+
+            const datos = await leerRespuesta(response);
+            productos = normalizarLista(datos);
+        } catch (error) {
+            productos = [];
+            console.error('Error al cargar productos para stock:', error);
         }
     }
 
